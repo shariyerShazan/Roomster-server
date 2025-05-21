@@ -1,6 +1,6 @@
 
 import express from "express";
-import { register, login, logout } from "../Controllers/user.controller.js";
+import { register, login, logout, updateUserProfile } from "../Controllers/user.controller.js";
 // import isAuthed from "../Middlewares/isAuthed.js";
 
 const router = express.Router();
@@ -8,5 +8,6 @@ const router = express.Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
+router.put("/update-profile", updateUserProfile);
 
 export default router;
