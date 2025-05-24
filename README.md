@@ -1,3 +1,21 @@
+website name : RoomsTer
+
 github :  https://github.com/Programming-Hero-Web-Course4/b11a10-server-side-shariyerShazan
 
-vercel : https://server-shariyer-shazans-projects.vercel.app/
+vercel live link : https://server-sepia-theta.vercel.app
+
+
+
+
+
+## 📁 Technologies Used
+
+- cookie parser 
+- json web token
+- bcrypt js
+- nodemon 
+- express 
+- dot env
+- mongodb 
+- mongoose 
+- cors
