@@ -6,16 +6,18 @@ import {
   getAdminPost,
   getAllPost,
   getPostById,
+  updateLike,
   updatePostById,
 } from "../Controllers/post.controller.js";
 
 const router = express.Router();
 
-router.post("/post", isAuthed, createPost);
+router.post("/post/:id",createPost);
 router.get("/get-post", getAllPost);
-router.get("/get-admin-post", isAuthed, getAdminPost);
-router.get("/get-post/:id", isAuthed, getPostById);
-router.put("/get-post/:id", isAuthed, updatePostById);
-router.delete("/get-post/:id", isAuthed, deletePostById);
+router.get("/get-admin-post/:id", getAdminPost);
+router.get("/get-post/:id",getPostById);
+router.put("/update/:id",  updatePostById);
+router.put('/update-like/:id', updateLike)
+router.delete("/delete/:id",  deletePostById);
 
 export default router;

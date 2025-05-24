@@ -2,9 +2,6 @@ import User from "../Models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-
-
-
 export const register = async (req, res) => {
   try {
     const { name, email, password, photoURL, role } = req.body;
@@ -16,31 +13,66 @@ export const register = async (req, res) => {
     }
     const user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "user already exist with this email",
         success: false,
       });
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Please enter a valid email address",
+        success: false,
+      });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters long",
+        success: false,
+      });
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must contain at least one uppercase and one lowercase letter",
+        success: false,
+      });
+    }
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User already exists with this email",
+        success: false,
+      });
+    }
     const hassedPassword = await bcrypt.hash(password, 10);
-    await User.create({
+    const CreateedUser = {
       name,
       email,
-      password : hassedPassword,
+      password: hassedPassword,
       photoURL,
       role,
+    };
+
+    const tokenData = {
+      userId: user?._id ,
+    };
+    // error?
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
+      expiresIn: "7d",
     });
+    await User.create(CreateedUser);
 
     return res.status(201).json({
       message: "Account created successfully",
+      user :  CreateedUser,
+     token ,
       success: true,
     });
   } catch (error) {
     console.log(error);
   }
 };
-
-
-
 
 export const login = async (req, res) => {
   try {
@@ -77,7 +109,8 @@ export const login = async (req, res) => {
     const tokenData = {
       userId: user._id,
     };
-    const token = await jwt.sign(tokenData, process.env.JWT_SECRET, {
+    // error?
+    const token = jwt.sign(tokenData, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -91,6 +124,7 @@ export const login = async (req, res) => {
       .json({
         message: `Welcome back ${user.name}`,
         user,
+        token,
         success: true,
       });
   } catch (error) {
@@ -109,12 +143,9 @@ export const logout = async (req, res) => {
   }
 };
 
-
-
-
-
-
-
+// exports.logout = async (req, res) => {
+//   res.clearCookie("token").json({ message: "Logged out successfully" });
+// };
 
 export const updateUserProfile = async (req, res) => {
   try {
@@ -133,7 +164,10 @@ export const updateUserProfile = async (req, res) => {
     if (photoURL) user.photoURL = photoURL;
 
     if (oldPassword && newPassword) {
-      const isPasswordMatched = await bcrypt.compare(oldPassword, user.password);
+      const isPasswordMatched = await bcrypt.compare(
+        oldPassword,
+        user.password
+      );
       if (!isPasswordMatched) {
         return res.status(400).json({
           message: "Old password is incorrect",

@@ -8,7 +8,7 @@ const postSchema = new mongoose.Schema({
     required:true, 
     trim: true
   },
-  roomPictueURL:{
+  roomPictureURL:{
       type: String ,
       required: true
   },
@@ -45,6 +45,11 @@ const postSchema = new mongoose.Schema({
   createdBy: {
     type: String ,
     required: true,
+  },
+  like: {
+    type : Number ,
+    default : 0,
+    likedUsers:[]
   }
 }, {
   timestamps: true

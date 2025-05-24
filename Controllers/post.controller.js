@@ -4,7 +4,7 @@ export const createPost = async (req, res) => {
   try {
     const {
       title,
-      roomPictueURL,
+      roomPictureURL,
       location,
       rent,
       type,
@@ -13,11 +13,12 @@ export const createPost = async (req, res) => {
       lifestyle,
       contactNumber,
     } = req.body;
-    const userId = req.id;
+    
+    const userId = req.params.id;
 
     if (
       !title ||
-      !roomPictueURL ||
+      !roomPictureURL ||
       !location ||
       !rent ||
       !type ||
@@ -33,7 +34,7 @@ export const createPost = async (req, res) => {
     }
     const post = await Post.create({
       title,
-      roomPictueURL ,
+      roomPictureURL ,
       location,
       rent : Number(rent),
       type,
@@ -61,13 +62,13 @@ export const createPost = async (req, res) => {
 export const getAllPost = async (req , res)=>{
   try {
     const keyword = req.query.keyword || ""
-    const qurey = {
+    const query = {
       $or:[
         {title : {$regex: keyword , $options: 'i'}},
         {description : {$regex: keyword , $options: 'i'}}
       ]
     }
-    const post = await Post.find(qurey)
+    const post = await Post.find(query)
    if(!post){
     return res.status(404).json({
       message : "Post not found",
@@ -115,7 +116,8 @@ export const getPostById = async ( req , res )=>{
 
 export const getAdminPost = async (req , res)=>{
   try {
-       const adminId = req.id
+      //  const adminId = req.id
+      const adminId = req.params.id
        const post = await  Post.find({createdBy : adminId})
        if(!post){
         return res.status(404).json({
@@ -138,7 +140,8 @@ export const getAdminPost = async (req , res)=>{
 export const updatePostById = async (req, res) => {
   try {
     const postId = req.params.id;
-    const userId = req.id;
+    // const userId = req.id;
+   
 
     const post = await Post.findById(postId);
 
@@ -149,12 +152,12 @@ export const updatePostById = async (req, res) => {
       });
     }
 
-    if (post.createdBy.toString() !== userId) {
-      return res.status(403).json({
-        message: "You are not authorized to update this post",
-        success: false,
-      });
-    }
+    // if (post.createdBy.toString() !== userId) {
+    //   return res.status(403).json({
+    //     message: "You are not authorized to update this post",
+    //     success: false,
+    //   });
+    // }
 
     const updatedData = req.body;
 
@@ -182,7 +185,7 @@ export const updatePostById = async (req, res) => {
 export const deletePostById = async (req, res) => {
   try {
     const postId = req.params.id;
-    const userId = req.id;
+    // const userId = req.id;
 
     const post = await Post.findById(postId);
 
@@ -193,12 +196,12 @@ export const deletePostById = async (req, res) => {
       });
     }
 
-    if (post.createdBy.toString() !== userId) {
-      return res.status(403).json({
-        message: "You are not authorized to delete this post",
-        success: false,
-      });
-    }
+    // if (post.createdBy.toString() !== postId) {
+    //   return res.status(403).json({
+    //     message: "You are not authorized to delete this post",
+    //     success: false,
+    //   });
+    // }
 
     await Post.findByIdAndDelete(postId);
 
@@ -212,5 +215,47 @@ export const deletePostById = async (req, res) => {
 };
 
 
+export const updateLike = async (req, res) => {
+  try {
+    const { action } = req.body; 
+    const postId = req.params.id;
 
 
+    if (!action || !["like", "unlike"].includes(action)) {
+      return res.status(400).json({ 
+        message: "Invalid action. Use 'like' or 'unlike'",
+        success: false 
+      });
+    }
+
+    const update = action === "like" 
+      ? { $inc: { like: 1 } } 
+      : { $inc: { like: -1 } }; 
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      postId,
+      update,
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({ 
+        message: "Post not found",
+        success: false 
+      });
+    }
+
+    res.status(200).json({ 
+      message: `Post ${action}d successfully`, 
+      post: updatedPost,
+      success: true 
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Server error", 
+      error: error.message, 
+      success: false 
+    });
+  }
+};
